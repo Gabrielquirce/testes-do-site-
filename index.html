@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direção Escolar - Escola XYZ</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <img src="logo-escola.png" alt="Logo Escola XYZ" class="logo">
+        <nav>
+            <ul>
+                <li><a href="#">Início</a></li>
+                <li class="dropdown">
+                    Serviços
+                    <div class="dropdown-content">
+                        <a href="#matriculas">Matrículas</a>
+                        <a href="#calendario">Calendário</a>
+                        <a href="#">Boletins</a>
+                        <a href="#">Requerimentos</a>
+                    </div>
+                </li>
+                <li><a href="#calendario">Calendário</a></li>
+                <li><a href="#">Contato</a></li>
+                <li><a href="#" class="btn">Portal do Aluno</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="banner">
+        <h1>Bem-vindo à Escola XYZ</h1>
+        <p>Educação de qualidade há mais de 30 anos</p>
+        <button onclick="location.href='#matriculas'">Faça sua Matrícula</button>
+    </section>
+
+    <section class="destaques">
+        <div class="card">
+            <h3>Últimas Notícias</h3>
+            <p>Resultados do Vestibular 2024</p>
+        </div>
+        <div class="card">
+            <h3>Próximos Eventos</h3>
+            <p>Reunião de Pais: 25/10</p>
+        </div>
+        <div class="card">
+            <h3>Links Úteis</h3>
+            <p>Horário de Aulas</p>
+        </div>
+    </section>
+
+    <section class="calendar-section" id="calendario">
+        <div class="calendar-controls">
+            <h2 id="current-month"></h2>
+            <div>
+                <button class="calendar-btn" onclick="previousMonth()">‹</button>
+                <button class="calendar-btn" onclick="nextMonth()">›</button>
+            </div>
+        </div>
+        
+        <div class="calendar-container">
+            <div class="calendar" id="calendar"></div>
+            <div class="event-list" id="event-list">
+                <h3>Eventos do Mês</h3>
+                <div id="events-container"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="matriculas-section" id="matriculas">
+        <h2>Gerenciamento de Matrículas</h2>
+        
+        <div class="controles-matriculas">
+            <div class="search-filter">
+                <input type="text" id="search-input" placeholder="Pesquisar por nome ou RA..." class="search-input">
+                <select id="status-filter" class="status-filter">
+                    <option value="all">Todos os status</option>
+                    <option value="ativa">Ativa</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="trancada">Trancada</option>
+                </select>
+            </div>
+            <button class="btn nova-matricula" onclick="abrirFormularioMatricula()">+ Nova Matrícula</button>
+        </div>
+
+        <div class="tabela-container">
+            <table class="tabela-matriculas">
+                <thead>
+                    <tr>
+                        <th>RA</th>
+                        <th>Aluno</th>
+                        <th>Curso</th>
+                        <th>Data Matrícula</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-matriculas-body"></tbody>
+            </table>
+        </div>
+    </section>
+<!-- Adicionar antes do footer -->
+<div id="modal-matricula" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="fecharModal()">&times;</span>
+        <h3>Formulário de Matrícula</h3>
+        <form id="form-matricula" onsubmit="salvarMatricula(event)">
+            <div class="form-group">
+                <label>RA:</label>
+                <input type="text" id="ra" required pattern="\d{8}">
+                <small class="error-message" id="ra-error"></small>
+            </div>
+            
+            <div class="form-group">
+                <label>Nome Completo:</label>
+                <input type="text" id="nome" required>
+                <small class="error-message" id="nome-error"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Curso:</label>
+                <select id="curso" required>
+                    <option value="">Selecione</option>
+                    <option value="Ensino Médio">Ensino Médio</option>
+                    <option value="Técnico em Informática">Técnico em Informática</option>
+                    <option value="Técnico em Administração">Técnico em Administração</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Data de Matrícula:</label>
+                <input type="date" id="data" required>
+            </div>
+
+            <div class="form-group">
+                <label>Status:</label>
+                <select id="status" required>
+                    <option value="pendente">Pendente</option>
+                    <option value="ativa">Ativa</option>
+                    <option value="trancada">Trancada</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Documentos Anexados:</label>
+                <input type="file" id="documentos" multiple accept=".pdf,.jpg,.png">
+                <div id="arquivos-anexos"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Observações:</label>
+                <textarea id="observacoes" rows="3"></textarea>
+            </div>
+
+            <div class="form-buttons">
+                <button type="button" onclick="fecharModal()">Cancelar</button>
+                <button type="submit">Salvar Matrícula</button>
+            </div>
+        </form>
+    </div>
+</div>
+    <footer>
+        <div>
+            <h4>Links Rápidos</h4>
+            <a href="#">Política de Privacidade</a>
+            <a href="#">Trabalhe Conosco</a>
+        </div>
+        <div>
+            <h4>Newsletter</h4>
+            <input type="email" placeholder="Seu e-mail">
+            <button>Assinar</button>
+        </div>
+        <div>
+            <p>© 2024 Escola XYZ</p>
+            <p>Desenvolvido por [Nome]</p>
+        </div>
+    </footer>
+    <section class="sobre">
+        <h2>Sobre Nossa Escola</h2>
+        <p>Comprometidos com a excelência educacional desde 1990</p>
+        <div class="stats">
+            <div class="stat-item">95% de Aprovação</div>
+            <div class="stat-item">30 Anos de História</div>
+        </div>
+    </section>
+    <script src="scripts.js"></script>
+</body>
+</html>
