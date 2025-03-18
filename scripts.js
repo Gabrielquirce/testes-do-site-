@@ -1,4 +1,105 @@
-// ========== CÓDIGO ORIGINAL DO CALENDÁRIO ==========
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("formulario");
+
+    form.addEventListener("submit", function (event) {
+        let isValid = true;
+
+        // Função para exibir erro abaixo do input
+        function setError(input, message) {
+            let errorSpan = input.nextElementSibling;
+            if (!errorSpan || !errorSpan.classList.contains("error-message")) {
+                errorSpan = document.createElement("span");
+                errorSpan.className = "error-message";
+                errorSpan.style.color = "red";
+                errorSpan.style.fontSize = "12px";
+                errorSpan.style.display = "block";
+                input.parentNode.appendChild(errorSpan);
+            }
+            errorSpan.textContent = message;
+            input.classList.add("input-error");
+            isValid = false;
+        }
+
+        // Função para remover erro quando o usuário começa a digitar
+        function clearError(input) {
+            let errorSpan = input.nextElementSibling;
+            if (errorSpan && errorSpan.classList.contains("error-message")) {
+                errorSpan.textContent = "";
+            }
+            input.classList.remove("input-error");
+        }
+
+        // Campos para validação
+        const campos = [
+            {
+                input: document.getElementById("inputName4"),
+                validacao: (valor) => /^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(valor.trim()),
+                mensagemErro: "O nome não pode conter números ou caracteres especiais."
+            },
+            {
+                input: document.getElementById("inputEmail"),
+                validacao: (valor) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor.trim()),
+                mensagemErro: "E-mail inválido! Digite um endereço válido, como exemplo@dominio.com."
+            },
+            {
+                input: document.getElementById("inputAge"),
+                validacao: (valor) => valor >= 0 && valor <= 120,
+                mensagemErro: "Idade inválida! Deve estar entre 0 e 120."
+            },
+            {
+                input: document.getElementById("inputYear"),
+                validacao: (valor) => {
+                    const anoAtual = new Date().getFullYear();
+                    return valor >= 1900 && valor <= anoAtual + 2;
+                },
+                mensagemErro: `Ano letivo inválido! Deve estar entre 1900 e ${new Date().getFullYear() + 2}.`
+            },
+            {
+                input: document.getElementById("inputFone"),
+                validacao: (valor) => /^\(\d{2}\) \d{4,5}-\d{4}$/.test(valor),
+                mensagemErro: "Telefone inválido! Deve estar no formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX."
+            },
+            {
+                input: document.getElementById("inputMatricula"),
+                validacao: (valor) => /^\d{6,}$/.test(valor.trim()),
+                mensagemErro: "Matrícula inválida! Deve conter pelo menos 6 dígitos numéricos."
+            }
+        ];
+
+        // Validação dos campos
+        campos.forEach(({ input, validacao, mensagemErro }) => {
+            const valor = input.value.trim();
+            if (!validacao(valor)) {
+                setError(input, mensagemErro);
+            } else {
+                clearError(input);
+            }
+        });
+
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+
+    // Aplicar evento para remover erro ao digitar
+    document.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("input", () => clearError(input));
+    });
+
+    // Máscara para telefone
+    const telefone = document.getElementById("inputFone");
+    telefone.addEventListener("input", function () {
+        let valor = telefone.value.replace(/\D/g, "");
+        if (valor.length > 11) valor = valor.slice(0, 11);
+
+        if (valor.length <= 10) {
+            telefone.value = valor.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+        } else {
+            telefone.value = valor.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+        }
+    });
+});
+// Código JavaScript Integrado
 let currentDate = new Date();
 let events = JSON.parse(localStorage.getItem('calendarEvents')) || {};
 
@@ -180,230 +281,3 @@ function nextMonth() {
 
 // Inicialização
 generateCalendar(currentDate.getMonth(), currentDate.getFullYear());
-
-// ========== MELHORIAS NO SISTEMA DE MATRÍCULAS ==========
-let matriculas = JSON.parse(localStorage.getItem('matriculas')) || [];
-let currentPage = 1;
-const itemsPerPage = 5;
-
-// Função melhorada para renderizar a tabela com paginação
-function renderizarMatriculas(filtro = 'all', pesquisa = '') {
-    const tbody = document.getElementById('tabela-matriculas-body');
-    tbody.innerHTML = '';
-
-    const dadosFiltrados = matriculas.filter(matricula => {
-        const matchStatus = filtro === 'all' || matricula.status === filtro;
-        const matchPesquisa = matricula.nome.toLowerCase().includes(pesquisa.toLowerCase()) || 
-                             matricula.ra.includes(pesquisa);
-        return matchStatus && matchPesquisa;
-    });
-
-    // Paginação
-    const totalPages = Math.ceil(dadosFiltrados.length / itemsPerPage);
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const dadosPagina = dadosFiltrados.slice(start, end);
-
-    // Renderizar itens
-    dadosPagina.forEach(matricula => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${matricula.ra}</td>
-            <td>${matricula.nome}</td>
-            <td>${matricula.curso}</td>
-            <td>${new Date(matricula.data).toLocaleDateString('pt-BR')}</td>
-            <td>
-                <span class="status-badge status-${matricula.status}">
-                    ${matricula.status.charAt(0).toUpperCase() + matricula.status.slice(1)}
-                </span>
-            </td>
-            <td>
-                <button class="btn-acao btn-visualizar" onclick="visualizarMatricula('${matricula.ra}')">
-                    👁️ Detalhes
-                </button>
-                <button class="btn-acao btn-editar" onclick="editarMatricula('${matricula.ra}')">
-                    ✏️ Editar
-                </button>
-                <button class="btn-acao btn-excluir" onclick="excluirMatricula('${matricula.ra}')">
-                    × Excluir
-                </button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-
-    // Renderizar paginação
-    renderizarPaginacao(totalPages);
-}
-
-// Função de paginação
-function renderizarPaginacao(totalPages) {
-    const paginacao = document.getElementById('paginacao');
-    if (!paginacao) return;
-
-    paginacao.innerHTML = '';
-    for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement('button');
-        btn.className = `pagina-btn ${i === currentPage ? 'active' : ''}`;
-        btn.textContent = i;
-        btn.onclick = () => {
-            currentPage = i;
-            renderizarMatriculas(
-                document.getElementById('status-filter').value,
-                document.getElementById('search-input').value
-            );
-        };
-        paginacao.appendChild(btn);
-    }
-}
-
-// Modal e formulário aprimorado
-let matriculaEditando = null;
-
-function abrirFormularioMatricula(ra = null) {
-    matriculaEditando = ra ? matriculas.find(m => m.ra === ra) : null;
-    
-    if (matriculaEditando) {
-        // Preencher formulário para edição
-        document.getElementById('ra').value = matriculaEditando.ra;
-        document.getElementById('nome').value = matriculaEditando.nome;
-        document.getElementById('curso').value = matriculaEditando.curso;
-        document.getElementById('data').value = matriculaEditando.data.split('T')[0];
-        document.getElementById('status').value = matriculaEditando.status;
-        document.getElementById('observacoes').value = matriculaEditando.observacoes || '';
-        
-        // Exibir anexos
-        const anexosContainer = document.getElementById('arquivos-anexos');
-        anexosContainer.innerHTML = '';
-        if (matriculaEditando.anexos) {
-            matriculaEditando.anexos.forEach((anexo, index) => {
-                const div = document.createElement('div');
-                div.className = 'arquivo-item';
-                div.innerHTML = `
-                    ${anexo.nome}
-                    <button onclick="removerAnexo(${index})">×</button>
-                `;
-                anexosContainer.appendChild(div);
-            });
-        }
-    } else {
-        // Limpar formulário para nova matrícula
-        document.getElementById('form-matricula').reset();
-        document.getElementById('arquivos-anexos').innerHTML = '';
-    }
-    
-    document.getElementById('modal-matricula').style.display = 'block';
-}
-
-function fecharModal() {
-    document.getElementById('modal-matricula').style.display = 'none';
-    matriculaEditando = null;
-}
-
-// Função para salvar matrícula (criar/editar)
-function salvarMatricula(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    const novaMatricula = {
-        ra: formData.get('ra'),
-        nome: formData.get('nome'),
-        curso: formData.get('curso'),
-        data: formData.get('data'),
-        status: formData.get('status'),
-        observacoes: formData.get('observacoes'),
-        anexos: []
-    };
-
-    // Validação de RA único
-    if (!matriculaEditando && matriculas.some(m => m.ra === novaMatricula.ra)) {
-        alert('RA já cadastrado!');
-        return;
-    }
-
-    // Processar arquivos
-    const fileInput = document.getElementById('documentos');
-    for (let i = 0; i < fileInput.files.length; i++) {
-        const file = fileInput.files[i];
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            novaMatricula.anexos.push({
-                nome: file.name,
-                tipo: file.type,
-                dados: e.target.result.split(',')[1]
-            });
-        };
-        reader.readAsDataURL(file);
-    }
-
-    // Atualizar ou adicionar matrícula
-    if (matriculaEditando) {
-        Object.assign(matriculaEditando, novaMatricula);
-    } else {
-        matriculas.push(novaMatricula);
-    }
-
-    localStorage.setItem('matriculas', JSON.stringify(matriculas));
-    renderizarMatriculas();
-    fecharModal();
-}
-
-// Função para exportar dados
-function exportarParaCSV() {
-    const csvContent = [
-        ['RA', 'Nome', 'Curso', 'Data', 'Status'].join(','),
-        ...matriculas.map(m => [
-            m.ra,
-            `"${m.nome}"`,
-            `"${m.curso}"`,
-            m.data,
-            m.status
-        ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'matriculas.csv';
-    a.click();
-}
-
-// Função para exportar PDF (requer biblioteca jsPDF)
-function exportarParaPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    doc.text('Relatório de Matrículas', 10, 10);
-    let y = 20;
-    
-    matriculas.forEach((matricula, index) => {
-        doc.text(`${index + 1}. ${matricula.nome} (RA: ${matricula.ra})`, 10, y);
-        y += 10;
-        if (y > 280) {
-            doc.addPage();
-            y = 10;
-        }
-    });
-    
-    doc.save('matriculas.pdf');
-}
-
-// Atualizar controles da tabela
-document.querySelector('.controles-matriculas').innerHTML += `
-    <div class="export-buttons">
-        <button class="btn" onclick="exportarParaCSV()">Exportar CSV</button>
-        <button class="btn" onclick="exportarParaPDF()">Exportar PDF</button>
-    </div>
-`;
-
-// Adicionar paginação ao HTML
-document.querySelector('.tabela-container').insertAdjacentHTML('afterend', `
-    <div id="paginacao" class="paginacao"></div>
-`);
-
-// Inicializar biblioteca PDF (adicionar no head)
-document.head.insertAdjacentHTML('beforeend', `
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-`);
